@@ -1,9 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Feed from "./pages/Feed";
 import Wellness from "./pages/Wellness";
+
+// 🔐 Protected Route Component
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("shieldher_token");
+  return token ? children : <Navigate to="/login" />;
+}
 
 function App() {
   return (
@@ -14,8 +20,24 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/feed" element={<Feed />} />
-            <Route path="/wellness" element={<Wellness />} />
+
+            {/* 🔒 Protected routes */}
+            <Route
+              path="/feed"
+              element={
+                <ProtectedRoute>
+                  <Feed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/wellness"
+              element={
+                <ProtectedRoute>
+                  <Wellness />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
       </div>

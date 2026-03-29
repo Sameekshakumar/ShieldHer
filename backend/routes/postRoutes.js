@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
 
-// Toxicity checker using Claude API
+// Toxicity checker
 const checkToxicity = async (text) => {
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -17,47 +17,86 @@ const checkToxicity = async (text) => {
         max_tokens: 10,
         messages: [{
           role: "user",
-          content: `You are a toxicity detector. Reply with ONLY a decimal number between 0 and 1. Nothing else. No explanation. No words. Just the number. 0 = completely safe, 1 = extremely toxic. Message: "${text}"`
+          content: `Reply ONLY with a number between 0 and 1. Message: "${text}"`
         }]
       })
     });
+
     const data = await res.json();
-    const score = parseFloat(data.content[0].text);
+    const score = parseFloat(data.content?.[0]?.text);
     return isNaN(score) ? 0 : score;
   } catch (err) {
     console.error("Toxicity check failed:", err);
-    return 0; // default to safe if API fails
+    return 0;
   }
 };
 
-// GET all posts
-router.get('/', async (req, res) => {
+// GET FEED
+router.get('/feed', async (req, res) => {
   try {
-    const posts = await Post.find();
+    const posts = await Post.find().sort({ timestamp: -1 });
     res.json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// POST create a new post
-router.post('/', async (req, res) => {
+// CREATE POST / REPLY
+router.post('/check-and-send', async (req, res) => {
   try {
-    // Only check toxicity if post has content and is long enough
-    if (req.body.content && req.body.content.length > 10) {
-      const score = await checkToxicity(req.body.content);
-      if (score > 0.8) {
-        return res.status(400).json({ 
-          message: "This post violates community guidelines." 
-        });
-      }
+    const { content, parentId } = req.body;
+
+    if (!content) {
+      return res.status(400).json({ message: "Content required" });
     }
 
-    const post = new Post(req.body);
-    await post.save();
-    res.status(201).json(post);
+    const score = await checkToxicity(content);
+
+    if (score > 0.8) {
+      return res.json({ blocked: true, score });
+    }
+
+    // ✅ NEW POST
+    if (!parentId) {
+      const newPost = await Post.create({
+        content,
+        authorPseudonym: req.user?.pseudonym || "anonymous",
+        timestamp: new Date(),
+        replies: []
+      });
+
+      return res.json({
+        blocked: false,
+        post: newPost
+      });
+    }
+
+    // ✅ REPLY
+    const parentPost = await Post.findById(parentId);
+
+    if (!parentPost) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    parentPost.replies.push({
+      content,
+      authorPseudonym: req.user?.pseudonym || "anonymous",
+      timestamp: new Date()
+    });
+
+    await parentPost.save();
+
+    // 🔥 IMPORTANT FIX → return UPDATED post from DB
+    const updatedPost = await Post.findById(parentId).lean();
+
+    return res.json({
+      blocked: false,
+      post: updatedPost
+    });
+
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
