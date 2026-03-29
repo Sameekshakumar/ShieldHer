@@ -1,21 +1,19 @@
 const mongoose = require("mongoose");
 
-const moodLogSchema = new mongoose.Schema({
+const MoodLogSchema = new mongoose.Schema({
   pseudonym: {
     type: String,
-    required: [true, "Pseudonym is required"],
-    trim: true,
+    required: true,
   },
   moodScore: {
     type: Number,
-    required: [true, "Mood score is required"],
-    min: [1, "Mood score must be between 1 and 5"],
-    max: [5, "Mood score must be between 1 and 5"],
+    required: true,
+    min: 1,
+    max: 5,
   },
   aiNudge: {
     type: String,
-    default: "",
-    maxlength: [500, "AI nudge cannot exceed 500 characters"],
+    required: true,
   },
   timestamp: {
     type: Date,
@@ -23,4 +21,4 @@ const moodLogSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("MoodLog", moodLogSchema);
+module.exports = mongoose.model("MoodLog", MoodLogSchema);
