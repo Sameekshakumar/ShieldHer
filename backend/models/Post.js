@@ -21,6 +21,7 @@ const postSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+   parentId: { type: mongoose.Schema.Types.ObjectId, ref: "Post", default: null },
   timestamp: {
     type: Date,
     default: Date.now,

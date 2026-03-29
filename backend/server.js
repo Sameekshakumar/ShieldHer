@@ -6,23 +6,15 @@ const mongoose = require("mongoose");
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json());
-
-const postRoutes = require('./routes/postRoutes');
-const userRoutes = require('./routes/userRoutes');
-const moodRoutes = require('./routes/moodRoutes');
-
-app.use('/api/posts', postRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/moods', moodRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
@@ -37,10 +29,10 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// Placeholder route imports (teammates will add their own)
-// app.use("/api/auth", require("./routes/auth"));        // Person 3
-// app.use("/api/posts", require("./routes/posts"));      // Person 2
-// app.use("/api/wellness", require("./routes/wellness")); // Person 4
+// Routes
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/posts", require("./routes/posts"));
+app.use("/api/wellness", require("./routes/wellness"));
 
 // 404 Handler
 app.use((req, res) => {

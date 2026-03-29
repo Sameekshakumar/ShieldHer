@@ -35,7 +35,7 @@ const CRISIS_KEYWORDS = [
   "want to die", "no point living", "give up on life",
 ];
 
-const API = "http://localhost:5000";
+const API = "http://localhost:5001";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

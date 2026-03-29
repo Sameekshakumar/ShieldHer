@@ -99,6 +99,18 @@ router.post("/chat", authMiddleware, async (req, res) => {
 
     const claudeData = await claudeRes.json();
 
+    // Handle no credits / API error gracefully
+    if (claudeData.type === "error") {
+      const fallbacks = [
+        "I hear you 💜 That sounds really tough. You're not alone in feeling this way.",
+        "Thank you for sharing that with me. What you're feeling is completely valid.",
+        "I'm really glad you felt safe enough to open up. Can you tell me more about what happened?",
+        "That must have been so hard to go through. How long have you been feeling this way?",
+        "You're so much stronger than whatever happened to you. What would help you feel a little better right now?",
+      ];
+      const fallbackReply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      return res.json({ reply: fallbackReply, isClosing: false });
+    }
     if (!claudeData.content || !claudeData.content[0]) {
       console.error("Claude error:", claudeData);
       return res.status(500).json({ error: "Claude did not respond properly." });

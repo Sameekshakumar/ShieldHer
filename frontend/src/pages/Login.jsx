@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND = 'http://localhost:5000';
+const BACKEND = 'http://localhost:5001';
 
 export default function Login() {
   const navigate = useNavigate();
