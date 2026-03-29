@@ -16,6 +16,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
+const postRoutes = require('./routes/postRoutes');
+const userRoutes = require('./routes/userRoutes');
+const moodRoutes = require('./routes/moodRoutes');
+
+app.use('/api/posts', postRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/moods', moodRoutes);
+
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected successfully"))
